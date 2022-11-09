@@ -11,12 +11,13 @@ import java.util.Scanner;
 import java.util.Collections;
 
 public class KnapsackGA {
-    // we need to make rank based selection 
-    //m7tagen ne2ra mn file
-    //main
+
+    //b3ml crossover kam mara
+
     static int populationSize = 10;
     static double pc = 0.7;
     static double pm = 0.1;
+    static int max=-1;
     static ArrayList<chromosome> population = new ArrayList<chromosome>();
     static ArrayList<chromosome> pool = new ArrayList<chromosome>();
 
@@ -27,10 +28,7 @@ public class KnapsackGA {
         return false;
     }
 
-    public static void intializePopulation(int numItems) {
-        if (populationSize > Math.pow(2, numItems)) {
-            populationSize = (int) Math.pow(2, numItems);
-        }
+    public static void intializePopulation(int numItems,ArrayList<item> it,int weightKnapsack) {
         for (int i = 0; i < populationSize; i++) // 10 is the number of chromosomes generated
         {
             chromosome tmp = new chromosome("");
@@ -44,7 +42,7 @@ public class KnapsackGA {
                     tmp.binaryName += '0';
                 }
             }
-            if (inArray(tmp, population)) {
+            if (calculateWeight(tmp.binaryName,it)>weightKnapsack|| calculateWeight(tmp.binaryName,it)== 0) {
                 i--;
             } else {
                 population.add(tmp);
@@ -81,14 +79,9 @@ public class KnapsackGA {
     public static void CalculateFitness(ArrayList<item> it, int weightKnapsack) {
         for (int i = 0; i < population.size(); i++) {
             int weightOfCh = calculateWeight(population.get(i).binaryName, it);
-            if (weightOfCh > weightKnapsack || weightOfCh == 0) //rejected
-            {
-                population.remove(i);
-                i--;
-            } else //accepted and calculate its fitnessValue
-            {
+              //accepted and calculate its fitnessValue
                 population.get(i).fitnessValue = calculateValue(population.get(i).binaryName, it);
-            }
+
         }
     }
 
@@ -99,21 +92,17 @@ public class KnapsackGA {
     public static ArrayList<Integer> doSelection() {
         ArrayList<Integer> pre = new ArrayList<>();
         pre.add(0);
-        int sum = 0;
-        for (int i = 0; i < population.size(); i++) {
-            sum += population.get(i).fitnessValue;
-            pre.add(sum);
-        }
+
         Random random = new Random();
         int x = random.nextInt(populationSize + 1);
         int y = random.nextInt(populationSize + 1);
         int index1 = -1;
         int index2 = -1;
-        for (int i = 0; i < pre.size(); i++) {
-            if (!(x >= pre.get(i)) && index1 == -1) {
+        for (int i = 0; i < population.size(); i++) {
+            if (!(x >= population.get(i).percentage) && index1 == -1) {
                 index1 = i - 1;
             }
-            if (!(y >= pre.get(i)) && index2 == -1) {
+            if (!(y >=  population.get(i).percentage) && index2 == -1) {
                 index2 = i - 1;
             }
         }
@@ -125,7 +114,7 @@ public class KnapsackGA {
         return result;
     }
 
-    public static void doCrossOver(ArrayList<Integer> result) {
+    public static void doCrossOver(ArrayList<Integer> result,ArrayList<item> it,int weightKnapsack) {
         ArrayList<chromosome> offSprings = new ArrayList<>();
         chromosome offSpring1 = new chromosome("");
         chromosome offSpring2 = new chromosome("");
@@ -143,8 +132,17 @@ public class KnapsackGA {
                     offSpring1.binaryName += population.get(result.get(1)).binaryName.charAt(i);
                     offSpring2.binaryName += population.get(result.get(0)).binaryName.charAt(i);
                 }
+
             }
-        } else {
+            if(calculateWeight(offSpring1.binaryName,it)>weightKnapsack||calculateWeight(offSpring1.binaryName,it)==0){
+                offSpring1 = population.get(result.get(0));
+            }
+            if(calculateWeight(offSpring2.binaryName,it)>weightKnapsack||calculateWeight(offSpring1.binaryName,it)==0){
+                offSpring2 = population.get(result.get(1));
+            }
+
+        }
+        else {
             offSpring1 = population.get(result.get(0));
             offSpring2 = population.get(result.get(1));
         }
@@ -153,14 +151,14 @@ public class KnapsackGA {
 
     }
 
-    public char flipBit(char c) {
+    public static char flipBit(char c) {
         if (c == '1') {
             return '0';
         }
         return '1';
     }
 
-    public void doMutation() {
+    public static void doMutation(ArrayList<item> it,int weightKnapsack) {
         for (int i = 0; i < pool.size(); i++) {
             String tmp = "";
             for (int j = 0; j < pool.get(i).binaryName.length(); j++) {
@@ -173,78 +171,137 @@ public class KnapsackGA {
                     tmp += pool.get(i).binaryName.charAt(j);
                 }
             }
-            pool.get(i).binaryName = tmp;
+            if(calculateWeight(tmp,it)<=weightKnapsack&&calculateWeight(tmp,it)!=0){
+                pool.get(i).binaryName = tmp;
+            }
+//            pool.get(i).binaryName = tmp;
         }
     }
 
     public static void FullReplacement() {
         Collections.copy(population, pool); // copying the ArrayList pool to the population list
+       // population = pool;
+    }
+    public static void sortBasedOnFitness()
+    {
 
+        for(int i=0;i<population.size();i++)
+        {
+            for(int j=0;j<population.size();j++)
+            {
+                if (population.get(i).fitnessValue<population.get(j).fitnessValue)
+                {
+                    chromosome tmp=population.get(i);
+                    population.set(i,population.get(j));
+                    population.set(j,tmp);
+                }
+            }
+        }
+        int sumOfRanks=(population.size()*(population.size()+1))/2;
+        for(int i=0;i<population.size();i++)
+        {
+            population.get(i).rank=i+1;
+            population.get(i).percentage=(int) ((double)(i+1)/sumOfRanks*100);
+        }
+    }
+    public static int returnMax(ArrayList<chromosome>finalPopulation){
+
+        for(int i=0;i<finalPopulation.size();i++){
+            if(finalPopulation.get(i).fitnessValue>max){
+                max=finalPopulation.get(i).fitnessValue;
+            }
+        }
+        return max;
     }
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         Scanner input = new Scanner(System.in);
-        ArrayList<item> items = new ArrayList<item>();
-        item item = new item(0, 0);
-
-        File file = new File("D:\\Faculty\\Semester 7\\Soft Computing\\Assignments\\knapsackGA\\test.txt");
+        int t=1;
+        File file = new File("test.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
         int noTestCases = Integer.parseInt(br.readLine());
-        int knapsackWeight = -1;
-        int noOfItems = 0;
-        //reading from file
-        while ((st = br.readLine()) != null) {
-            //Ignore empty lines
-            if (st.isEmpty()) {
-                continue;
-            }
-            //parse knapsackWeight and noOfItems
-            else {
-                if (knapsackWeight == -1) {
-                    knapsackWeight = Integer.parseInt(st);
-                } else if (noOfItems == 0) {
-                    noOfItems = Integer.parseInt(st);
+        while (noTestCases > 0) {
+            max=-1;
+            population=new ArrayList<chromosome>();
+            pool=new ArrayList<chromosome>();
+            ArrayList<item> items = new ArrayList<item>();
+            item item = new item(0, 0);
+            int noOfGenerations = 20;
+            int knapsackWeight = -1;
+            int noOfItems = 0;
+            //reading from file
+            while ((st = br.readLine()) != null) {
+                //Ignore empty lines
+                if (st.isEmpty()) {
+                    continue;
                 }
-                //parse weight and value of each item
+                //parse knapsackWeight and noOfItems
                 else {
+                    if (knapsackWeight == -1) {
+                        knapsackWeight = Integer.parseInt(st);
 
-                    String[] pair = st.split(" ");
-                    int weight = Integer.parseInt(pair[0]);
-                    int value = Integer.parseInt(pair[1]);
-                    item = new item(weight, value);
-                    items.add(item);
+                    } else if (noOfItems == 0) {
+                        noOfItems = Integer.parseInt(st);
+
+                    }
+                    //parse weight and value of each item
+                    else {
+                        for (int i = 0; i < noOfItems; i++) {
+
+                            String[] pair = st.split(" ");
+                            int weight = Integer.parseInt(pair[0]);
+                            int value = Integer.parseInt(pair[1]);
+                            item = new item(weight, value);
+                            items.add(item);
+                            if(i!=noOfItems-1)
+                            {st=br.readLine();}
+                        }
+                        break;
+                    }
                 }
-
-
             }
-        }
-        for (int i = 0; i < items.size(); i++) {
-            System.out.println("item " + i + " weight:" + items.get(i).weight + " value:" + items.get(i).value);
+
+
+
+
+            //Initialize population
+//            System.out.println("initialize population");
+            intializePopulation(noOfItems, items, knapsackWeight);
+            //printPopulation(population);
+            while(noOfGenerations>0) {
+                //Evaluate solutions
+                //System.out.println("Evaluate solutions");
+                CalculateFitness(items, knapsackWeight);
+                sortBasedOnFitness();
+                //printPopulation(population);
+                //Perform selection then crossover (do crossover n times while n=popSize)
+               // System.out.println("Perform selection then crossover");
+                for (int i = 0; i < populationSize/2 ; i++) {
+                    ArrayList<Integer> offsprings;
+                    offsprings = doSelection();
+                    doCrossOver(offsprings, items, knapsackWeight);
+                }
+               // printPopulation(pool);
+                //Perform Mutation
+//                System.out.println("Perform mutation ");
+                doMutation(items,knapsackWeight);
+                //printPopulation(pool);
+                //Perform Replacement
+                //System.out.println("Perform Full replacement ");
+                FullReplacement();
+                CalculateFitness(items, knapsackWeight);
+                pool=new ArrayList<chromosome>();
+                noOfGenerations--;
+            }
+            printPopulation(population);
+            System.out.println("TestCase "+t+":"+returnMax(population));
+            t++;
+            noTestCases--;
+
         }
 
-        //Initialize population
-        System.out.println("initialize population");
-        intializePopulation(noOfItems);
-        printPopulation(population);
-        //Evaluate solutions
-        System.out.println("Evaluate solutions");
-        CalculateFitness(items, knapsackWeight);
-        printPopulation(population);
-        //Perform selection then crossover (do crossover n times while n=popSize)
-        System.out.println("Perform selection then crossover");
-        for (int i = 0; i < population.size(); i++) {
-            ArrayList<Integer> offsprings;
-            offsprings = doSelection();
-            doCrossOver(offsprings);
-        }
-        printPopulation(pool);
-        //Perform Mutation
-        //Perform Replacement
-        //FullReplacement();
     }
-
-
 
 }
 
