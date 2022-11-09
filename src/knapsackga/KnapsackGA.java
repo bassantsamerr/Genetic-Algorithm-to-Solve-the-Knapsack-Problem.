@@ -217,7 +217,7 @@ public class KnapsackGA {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         Scanner input = new Scanner(System.in);
         int t=1;
-        File file = new File("test.txt");
+        File file = new File("Bassant Samer - knapsack_input.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
         int noTestCases = Integer.parseInt(br.readLine());
@@ -227,7 +227,7 @@ public class KnapsackGA {
             pool=new ArrayList<chromosome>();
             ArrayList<item> items = new ArrayList<item>();
             item item = new item(0, 0);
-            int noOfGenerations = 20;
+            int noOfGenerations = 10;
             int knapsackWeight = -1;
             int noOfItems = 0;
             //reading from file
@@ -266,35 +266,31 @@ public class KnapsackGA {
 
 
             //Initialize population
-//            System.out.println("initialize population");
             intializePopulation(noOfItems, items, knapsackWeight);
-            //printPopulation(population);
+
             while(noOfGenerations>0) {
                 //Evaluate solutions
-                //System.out.println("Evaluate solutions");
                 CalculateFitness(items, knapsackWeight);
                 sortBasedOnFitness();
-                //printPopulation(population);
+
                 //Perform selection then crossover (do crossover n times while n=popSize)
-               // System.out.println("Perform selection then crossover");
                 for (int i = 0; i < populationSize/2 ; i++) {
                     ArrayList<Integer> offsprings;
                     offsprings = doSelection();
                     doCrossOver(offsprings, items, knapsackWeight);
                 }
-               // printPopulation(pool);
+
                 //Perform Mutation
-//                System.out.println("Perform mutation ");
                 doMutation(items,knapsackWeight);
-                //printPopulation(pool);
+
                 //Perform Replacement
-                //System.out.println("Perform Full replacement ");
                 FullReplacement();
+
                 CalculateFitness(items, knapsackWeight);
                 pool=new ArrayList<chromosome>();
                 noOfGenerations--;
             }
-            printPopulation(population);
+           // printPopulation(population);
             System.out.println("TestCase "+t+":"+returnMax(population));
             t++;
             noTestCases--;
