@@ -14,10 +14,10 @@ public class KnapsackGA {
 
     //b3ml crossover kam mara
 
-    static int populationSize = 10;
+    static int populationSize =100 ;
     static double pc = 0.7;
     static double pm = 0.1;
-    static int max=-1;
+    static chromosome max;
     static ArrayList<chromosome> population = new ArrayList<chromosome>();
     static ArrayList<chromosome> pool = new ArrayList<chromosome>();
 
@@ -79,8 +79,8 @@ public class KnapsackGA {
     public static void CalculateFitness(ArrayList<item> it, int weightKnapsack) {
         for (int i = 0; i < population.size(); i++) {
             int weightOfCh = calculateWeight(population.get(i).binaryName, it);
-              //accepted and calculate its fitnessValue
-                population.get(i).fitnessValue = calculateValue(population.get(i).binaryName, it);
+            //accepted and calculate its fitnessValue
+            population.get(i).fitnessValue = calculateValue(population.get(i).binaryName, it);
 
         }
     }
@@ -180,7 +180,7 @@ public class KnapsackGA {
 
     public static void FullReplacement() {
         Collections.copy(population, pool); // copying the ArrayList pool to the population list
-       // population = pool;
+        // population = pool;
     }
     public static void sortBasedOnFitness()
     {
@@ -204,15 +204,18 @@ public class KnapsackGA {
             population.get(i).percentage=(int) ((double)(i+1)/sumOfRanks*100);
         }
     }
-    public static int returnMax(ArrayList<chromosome>finalPopulation){
+    public static chromosome returnMax(ArrayList<chromosome>finalPopulation){
+        max=new chromosome("000");
 
         for(int i=0;i<finalPopulation.size();i++){
-            if(finalPopulation.get(i).fitnessValue>max){
-                max=finalPopulation.get(i).fitnessValue;
+            if(finalPopulation.get(i).fitnessValue>max.fitnessValue){
+                max=finalPopulation.get(i);
+                int f;
             }
         }
         return max;
     }
+
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         Scanner input = new Scanner(System.in);
@@ -222,12 +225,12 @@ public class KnapsackGA {
         String st;
         int noTestCases = Integer.parseInt(br.readLine());
         while (noTestCases > 0) {
-            max=-1;
+            max=new chromosome("000");
             population=new ArrayList<chromosome>();
             pool=new ArrayList<chromosome>();
             ArrayList<item> items = new ArrayList<item>();
             item item = new item(0, 0);
-            int noOfGenerations = 10;
+            int noOfGenerations = 50;
             int knapsackWeight = -1;
             int noOfItems = 0;
             //reading from file
@@ -261,10 +264,6 @@ public class KnapsackGA {
                     }
                 }
             }
-
-
-
-
             //Initialize population
             intializePopulation(noOfItems, items, knapsackWeight);
 
@@ -272,7 +271,6 @@ public class KnapsackGA {
                 //Evaluate solutions
                 CalculateFitness(items, knapsackWeight);
                 sortBasedOnFitness();
-
                 //Perform selection then crossover (do crossover n times while n=popSize)
                 for (int i = 0; i < populationSize/2 ; i++) {
                     ArrayList<Integer> offsprings;
@@ -290,8 +288,29 @@ public class KnapsackGA {
                 pool=new ArrayList<chromosome>();
                 noOfGenerations--;
             }
-           // printPopulation(population);
-            System.out.println("TestCase "+t+":"+returnMax(population));
+            // printPopulation(population);
+            System.out.println("TestCase "+t+":");
+            chromosome print= returnMax(population);
+            System.out.println("the Fitness value is :"+print.fitnessValue);
+            int ones =0;
+            for(int i=0;i<print.binaryName.length();i++)
+            {
+                if (print.binaryName.charAt(i)=='1')
+                {
+                    ones++;
+                }
+            }
+            System.out.println("the number of selected items is :"+ones);
+            System.out.println("the selected items : ");
+            for(int i=0;i<print.binaryName.length();i++)
+            {
+                if (print.binaryName.charAt(i)=='1')
+                {
+                    System.out.println("the weight : "+items.get(i).weight+"  the value : "+items.get(i).value);
+                }
+            }
+            System.out.println("=========================");
+
             t++;
             noTestCases--;
 
