@@ -171,7 +171,6 @@ public class KnapsackGA {
             if(calculateWeight(tmp,it)<=weightKnapsack&&calculateWeight(tmp,it)!=0){
                 pool.get(i).binaryName = tmp;
             }
-//            pool.get(i).binaryName = tmp;
         }
     }
 
