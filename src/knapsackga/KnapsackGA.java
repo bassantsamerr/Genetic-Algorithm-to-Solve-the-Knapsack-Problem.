@@ -210,14 +210,13 @@ public class KnapsackGA {
         for(int i=0;i<finalPopulation.size();i++){
             if(finalPopulation.get(i).fitnessValue>max.fitnessValue){
                 max=finalPopulation.get(i);
-                int f;
             }
         }
         return max;
     }
 
 
-    public static void main(String[] args) throws FileNotFoundException, IOException {
+    public static void main(String[] args) throws IOException {
         Scanner input = new Scanner(System.in);
         int t=1;
         File file = new File("Bassant Samer - knapsack_input.txt");
@@ -233,6 +232,7 @@ public class KnapsackGA {
             int noOfGenerations = 50;
             int knapsackWeight = -1;
             int noOfItems = 0;
+
             //reading from file
             while ((st = br.readLine()) != null) {
                 //Ignore empty lines
@@ -271,7 +271,8 @@ public class KnapsackGA {
                 //Evaluate solutions
                 CalculateFitness(items, knapsackWeight);
                 sortBasedOnFitness();
-                //Perform selection then crossover (do crossover n times while n=popSize)
+
+                //Perform selection then crossover (do crossover n/2 times while n=popSize)
                 for (int i = 0; i < populationSize/2 ; i++) {
                     ArrayList<Integer> offsprings;
                     offsprings = doSelection();
@@ -288,7 +289,7 @@ public class KnapsackGA {
                 pool=new ArrayList<chromosome>();
                 noOfGenerations--;
             }
-            // printPopulation(population);
+
             System.out.println("TestCase "+t+":");
             chromosome print= returnMax(population);
             System.out.println("the Fitness value is :"+print.fitnessValue);
