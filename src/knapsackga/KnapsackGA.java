@@ -2,7 +2,6 @@ package knapsackga;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,8 +10,6 @@ import java.util.Scanner;
 import java.util.Collections;
 
 public class KnapsackGA {
-
-    //b3ml crossover kam mara
 
     static int populationSize =100 ;
     static double pc = 0.7;
